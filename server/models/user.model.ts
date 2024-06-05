@@ -72,7 +72,7 @@ userSchema.pre<IUser>('save', async function (next) {
     next();
 });
 
-// compare password
+ //  compare password
 userSchema.methods.comparePassword = async function (enteredPassword: string): Promise<Boolean> {
     return await bycrypt.compare(enteredPassword, this.password);
 };
