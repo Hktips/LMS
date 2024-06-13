@@ -7,6 +7,7 @@ import jwt, { Secret } from "jsonwebtoken";
 import ejs from "ejs"
 import path from "path";
 import sendMail from "../utils/sendMail";
+import { sendToken } from "../utils/jwt";
 
 // register user
 
@@ -31,7 +32,7 @@ export const registrationonUser = catchAsyncError(async (req: Request, res: Resp
         };
         const activationToken = createActivationToken(user);
         const activationCode = activationToken.activationCode;
-        const data = { user: { name: user.name}, activationCode  };
+        const data = { user: { name: user.name }, activationCode };
         const html = await ejs.renderFile(path.join(__dirname, "../mails/activation.mail.ejs"), data);
         try {
             await sendMail({
@@ -81,7 +82,7 @@ export const activateUser = catchAsyncError(async (req: Request, res: Response, 
             activation_token,
             process.env.ACTIVATION_SECRET as string
         ) as { user: IUser; activationCode: string };
-        if (newUser.activationCode !== activation_code) {           
+        if (newUser.activationCode !== activation_code) {
             return next(new ErrorHandler("Invalid activation code", 400));
         }
         const { name, email, password } = newUser.user;
@@ -104,26 +105,27 @@ export const activateUser = catchAsyncError(async (req: Request, res: Response, 
 );
 
 // Login user
-interface ILoginRequest{
+interface ILoginRequest {
     email: string;
     password: string;
 }
-export const loginUser= catchAsyncError(async(req:Request,res:Response,next:NextFunction)=>{
-    try{
-        const {email,password}=req.body as ILoginRequest;
-        if(!email || !password){
-            return next(new ErrorHandler("Please enter email and password",400))
+export const loginUser = catchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { email, password } = req.body as ILoginRequest;
+        if (!email || !password) {
+            return next(new ErrorHandler("Please enter email and password", 400))
         };
-        const user = await userModel.findOne({email}).select("+password");
-        if(!user){
-            return next(new ErrorHandler("Invalated email or password",400))
+        const user = await userModel.findOne({ email }).select("+password");
+        if (!user) {
+            return next(new ErrorHandler("Invalated email or password", 400))
         }
-        const isPasswordMatch=await user.comparePassword(password);
-        if(!isPasswordMatch){
-            return next(new ErrorHandler("Invalid eail or password",400));
+        const isPasswordMatch = await user.comparePassword(password);
+        if (!isPasswordMatch) {
+            return next(new ErrorHandler("Invalid email or password", 400));
         };
 
-    }catch(error:any){
-        return next(new ErrorHandler(error.message,400));
+        sendToken(user, 200, res);
+    } catch (error: any) {
+        return next(new ErrorHandler(error.message, 400));
     }
 })
