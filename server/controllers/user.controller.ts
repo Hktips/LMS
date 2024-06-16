@@ -8,6 +8,7 @@ import ejs from "ejs"
 import path from "path";
 import sendMail from "../utils/sendMail";
 import { sendToken } from "../utils/jwt";
+import { redis } from "../utils/redis";
 
 // register user
 
@@ -128,4 +129,52 @@ export const loginUser = catchAsyncError(async (req: Request, res: Response, nex
     } catch (error: any) {
         return next(new ErrorHandler(error.message, 400));
     }
-})
+}
+);
+//logout user
+// export const logoutUser = catchAsyncError(
+//     async (req: Request, res: Response, next: NextFunction) => {
+//         try {
+//             res.cookie("access_token", "", { maxAge: 1 });
+//             res.cookie("refresh_token", "", { maxAge: 1 });
+//             const userId = req.user?._id || '';
+//             console.log(req.user);
+//             redis.del(userId);
+//             res.status(200).json({
+//                 success: true,
+//                 message: "Logged out successfully"
+//             });
+//         } catch (error: any) {
+//             return next(new ErrorHandler(error.message, 400));
+//         }
+//     })
+
+export const logoutUser = catchAsyncError(
+    async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            res.cookie("access_token", "", { maxAge: 1 });
+            res.cookie("refresh_token", "", { maxAge: 1 });
+
+            // Ensure req.user._id is a string or number
+            const userId = req.user?._id;
+            console.log(req.user);
+
+            if (!userId) {
+                return next(new ErrorHandler("User ID not found", 400));
+            }
+
+            // Convert userId to string or number if needed
+            const userIdAsString = String(userId); // Adjust as per your user ID type
+
+            await redis.del(userIdAsString); // Ensure userIdAsString is a valid RedisKey
+
+            res.status(200).json({
+                success: true,
+                message: "Logged out successfully",
+            });
+        } catch (error: any) {
+            return next(new ErrorHandler(error.message, 400));
+        }
+    }
+);
+
