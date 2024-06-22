@@ -3,7 +3,7 @@ import { Request, Response, NextFunction } from "express";
 import userModel, { IUser } from "../models/user.model";
 import ErrorHandler from "../utils/ErrorHandler";
 import { catchAsyncError } from "../middleware/catchAsyncError";
-import jwt, { Secret } from "jsonwebtoken";
+import jwt, { JwtPayload, Secret } from "jsonwebtoken";
 import ejs from "ejs"
 import path from "path";
 import sendMail from "../utils/sendMail";
@@ -131,43 +131,20 @@ export const loginUser = catchAsyncError(async (req: Request, res: Response, nex
     }
 }
 );
-//logout user
-// export const logoutUser = catchAsyncError(
-//     async (req: Request, res: Response, next: NextFunction) => {
-//         try {
-//             res.cookie("access_token", "", { maxAge: 1 });
-//             res.cookie("refresh_token", "", { maxAge: 1 });
-//             const userId = req.user?._id || '';
-//             console.log(req.user);
-//             redis.del(userId);
-//             res.status(200).json({
-//                 success: true,
-//                 message: "Logged out successfully"
-//             });
-//         } catch (error: any) {
-//             return next(new ErrorHandler(error.message, 400));
-//         }
-//     })
 
 export const logoutUser = catchAsyncError(
     async (req: Request, res: Response, next: NextFunction) => {
         try {
             res.cookie("access_token", "", { maxAge: 1 });
-            res.cookie("refresh_token", "", { maxAge: 1 });
-
-            // Ensure req.user._id is a string or number
+            res.cookie("refresh_token", "", { maxAge: 1 });        
             const userId = req.user?._id;
             console.log(req.user);
 
             if (!userId) {
                 return next(new ErrorHandler("User ID not found", 400));
             }
-
-            // Convert userId to string or number if needed
-            const userIdAsString = String(userId); // Adjust as per your user ID type
-
-            await redis.del(userIdAsString); // Ensure userIdAsString is a valid RedisKey
-
+            const userIdAsString = String(userId); 
+            await redis.del(userIdAsString);
             res.status(200).json({
                 success: true,
                 message: "Logged out successfully",
@@ -177,4 +154,5 @@ export const logoutUser = catchAsyncError(
         }
     }
 );
+
 
