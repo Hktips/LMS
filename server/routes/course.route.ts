@@ -38,11 +38,11 @@ courseRouter.post(
     authorizeRoles("admin"),
     getAllCourses
   );
-  courseRouter.get(
-    "/get-courses",
+  courseRouter.delete(
+    "/delete-course/:id",
     isAutheticated,
     authorizeRoles("admin"),
     deleteCourse
-  );
+  );;
   
 export default courseRouter;
