@@ -11,8 +11,6 @@ import NotificationModel from "../models/notification.Model";
 import { redis } from "../utils/redis";
 import { getAllOrdersService, newOrder } from "../services/order.service";
 require("dotenv").config();
-
-// create order
 export const createOrder = catchAsyncError(
     async (req: Request, res: Response, next: NextFunction) => {
       try {
@@ -21,7 +19,6 @@ export const createOrder = catchAsyncError(
         const courseExistInUser = user?.courses.some(
             (course: any) => course._id.toString() === courseId
           );
-    
           if (courseExistInUser) {
             return next(
               new ErrorHandler("You have already purchased this course", 400)
@@ -32,16 +29,14 @@ export const createOrder = catchAsyncError(
           if (!course) {
             return next(new ErrorHandler("Course not found", 404));
           }
-          //create order data.
           const data: any = {
             courseId: course._id,
             userId: user?._id,
             payment_info,
-          };
-          
+          };   
           const mailData = {
             order: {
-              _id: course._id.toString().slice(0, 6), //this will show only 0 to 6 item
+              _id: course._id.toString().slice(0, 6), 
               name: course.name,
               price: course.price,
               date: new Date().toLocaleDateString("en-US", {
@@ -67,12 +62,8 @@ export const createOrder = catchAsyncError(
           } catch (error: any) {
             return next(new ErrorHandler(error.message, 500));
           }
-            
-          user?.courses.push(course._id.toString());
-          
-
+          user?.courses.push(course._id.toString())
         //   await redis.set(req.user?._id, JSON.stringify(user));
-    
           await user?.save();
           await NotificationModel.create({
             user: user?._id,
@@ -80,15 +71,12 @@ export const createOrder = catchAsyncError(
             message: `You have a new order from ${course?.name}`,
           });
           course.purchased = course.purchased + 1;      
-
-          await course.save();
-    
+          await course.save();   
           newOrder(data,res,next);
 } catch (error: any) {
     return next(new ErrorHandler(error.message, 500));
   }
 })
-// get All orders --- only for admin
 export const getAllOrders = catchAsyncError(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
