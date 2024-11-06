@@ -3,8 +3,6 @@ import { NextFunction, Request, Response } from "express";
 import { catchAsyncError } from "../middleware/catchAsyncError";
 import ErrorHandler from "../utils/ErrorHandler";
 import cron from "node-cron";
-
-// get all notifications --- only admin
 export const getNotifications = catchAsyncError(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
